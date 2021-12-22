@@ -69,6 +69,7 @@ exports.updateVehicle = async (req, res) => {
   }
 };
 
+//delete vehicle with vehicle_plate
 exports.deleteVehicle = async (req, res) => {
   try {
     const vehicle_plate = req.body.vehicle_plate;
@@ -92,7 +93,7 @@ exports.deleteVehicle = async (req, res) => {
   }
 };
 
-//this func for dynamically update vehicles
+//this func for dynamically update vehicles excepst vehicle_id
 function updateVehiclesByID(id, cols) {
   // Setup static beginning of query
   var query = ["UPDATE vehicles"];
