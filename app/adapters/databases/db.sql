@@ -4,13 +4,14 @@ CREATE DATABASE tracking_database;
 
 CREATE TABLE devices(
     id SERIAL PRIMARY KEY NOT NULL,
+    vehicle_id INT REFERENCES vehicles(id),
     device_type_id INT REFERENCES devices_type (id),
     device_name VARCHAR(75),
     is_online BOOLEAN,
     is_active BOOLEAN
 );
 --sample innsert for devices
---insert into devices(device_type_id, device_name,is_online,is_active) values (1,'GPS',true,true);
+--insert into devices(device_type_id,,vehicle_id,device_name,is_online,is_active) values (1,1,'GPS',true,true);
 
 CREATE TABLE devices_type(
     id SERIAL PRIMARY KEY NOT NULL,
