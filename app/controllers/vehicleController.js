@@ -1,5 +1,5 @@
 const pool = require("../adapters/databases/postgresql");
-const {insertQuery,updateQueryById}=require('./crudHelpers/helperFunc')
+const {insertQuery,updateQueryById,getColValues}=require('./crudHelpers/helperFunc')
 
 exports.getVehicles = async (req, res) => {
   try {
@@ -14,8 +14,7 @@ exports.getVehicles = async (req, res) => {
 
 exports.createVehicle = async (req, res) => {
   try {
-    const vehicle_plate = req.body.vehicle_plate;
-    const current_status = req.body.current_status || null;
+  
     const plates = await pool.query("SELECT vehicle_plate from vehicles");
 
     const isPlateExist =
@@ -33,11 +32,8 @@ exports.createVehicle = async (req, res) => {
     //this insertQuery() function creates dynamic insert query
     const query = insertQuery(req.body,"vehicles");
 
-    const colValues = Object.keys(req.body)
-      .filter((item) => item !== "id")
-      .map(function (key) {
-        return req.body[key];
-      });
+    //this colValues holds req.body data
+    const colValues = getColValues(req.body)
     const result = await pool.query(query, colValues);
 
     res.status(200).json(result.rows);
@@ -67,11 +63,7 @@ exports.updateVehicle = async (req, res) => {
     var query = updateQueryById(req.body.id, req.body,"vehicles");
 
     // Turn req.body into an array of values
-    var colValues = Object.keys(req.body)
-      .filter((item) => item !== "id")
-      .map(function (key) {
-        return req.body[key];
-      });
+    var colValues = getColValues(req.body)
 
     const result = await pool.query(query, colValues);
 
