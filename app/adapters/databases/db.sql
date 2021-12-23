@@ -30,6 +30,24 @@ CREATE TABLE vehicles(
     current_status INT DEFAULT 0,
     is_active BOOLEAN DEFAULT true
 );
+
+CREATE TABLE log_temperature(
+    id SERIAL PRIMARY KEY NOT NULL ,
+    vehicle_id INT REFERENCES vehicles(id)  ON DELETE CASCADE ,
+    device_id INT REFERENCES devices(id)  ON DELETE CASCADE ,
+    read_data VARCHAR(50),
+    created_at timestamp WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE log_location(
+    id SERIAL PRIMARY KEY NOT NULL ,
+    vehicle_id INT REFERENCES vehicles(id)  ON DELETE CASCADE ,
+    device_id INT REFERENCES devices(id)  ON DELETE CASCADE ,
+    latitude VARCHAR(50),
+    longtitude VARCHAR(50),
+    created_at timestamp  WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
     
 
     
