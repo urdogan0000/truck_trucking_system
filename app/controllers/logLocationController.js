@@ -1,9 +1,9 @@
 const pool = require("../adapters/databases/postgresql");
 const { insertQuery, getColValues } = require("./crudHelpers/helperFunc");
 
-exports.getTemp = async (req, res) => {
+exports.getLoc = async (req, res) => {
   try {
-    const results = await pool.query("select * from log_temperature");
+    const results = await pool.query("select * from log_location");
     const logs = results.rows;
 
     res.status(200).json(logs);
@@ -12,10 +12,10 @@ exports.getTemp = async (req, res) => {
   }
 };
 
-exports.createTemp = async (req, res) => {
+exports.createLoc = async (req, res) => {
   try {
     //this insertQuery() function creates dynamic insert query
-    const query = insertQuery(req.body, "log_temperature");
+    const query = insertQuery(req.body, "log_location");
 
     //this colValues holds req.body data
     const colValues = getColValues(req.body);
