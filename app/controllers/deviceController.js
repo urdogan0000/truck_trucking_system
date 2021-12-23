@@ -1,7 +1,6 @@
 const pool = require("../adapters/databases/postgresql");
-const {insertQuery,updateQueryById}=require('./crudHelpers/helperFunc')
 
-exports.getVehicles = async (req, res) => {
+exports.getDevices = async (req, res) => {
   try {
     const results = await pool.query("select * from vehicles");
     const vehicles = results.rows;
@@ -12,7 +11,7 @@ exports.getVehicles = async (req, res) => {
   }
 };
 
-exports.createVehicle = async (req, res) => {
+exports.createDevice = async (req, res) => {
   try {
     const vehicle_plate = req.body.vehicle_plate;
     const current_status = req.body.current_status || null;
@@ -30,15 +29,11 @@ exports.createVehicle = async (req, res) => {
         message: "This plate is created before",
       });
     }
-    //this insertQuery() function creates dynamic insert query
-    const query = insertQuery(req.body,"vehicles");
 
-    const colValues = Object.keys(req.body)
-      .filter((item) => item !== "id")
-      .map(function (key) {
-        return req.body[key];
-      });
-    const result = await pool.query(query, colValues);
+    const result = await pool.query(
+      "INSERT INTO vehicles(vehicle_plate, current_status,is_active) VALUES ($1,$2,true) RETURNING *",
+      [vehicle_plate, current_status]
+    );
 
     res.status(200).json(result.rows);
   } catch (error) {
@@ -46,27 +41,20 @@ exports.createVehicle = async (req, res) => {
   }
 };
 
-exports.updateVehicle = async (req, res) => {
+exports.updateDevice = async (req, res) => {
   try {
     const plates = await pool.query("SELECT id from vehicles where id=$1", [
       req.body.id,
     ]);
-    //check the specific vehicle by id
+
     if (plates.rowCount === 0) {
-      return res.status(401).json({ message: "This id not exist " });
-    }
-    //if user wanna change vehicle plate he can t assign to other created vehicle_plate
-    const checkPlateName=await pool.query("SELECT id from vehicles where vehicle_plate=$1", [
-      req.body.vehicle_plate,
-    ]);
-    if (checkPlateName.rowCount > 0) {
-      return res.status(401).json({ message: "This plate is exist you can t patch  " });
+      return res.status(401).json({ message: "This plate not exist " });
     }
 
-    // updateQuryById() func creates dynamic updade sql query
-    var query = updateQueryById(req.body.id, req.body,"vehicles");
+    // setup the query
+    var query = updateDeviceByID(req.body.id, req.body);
 
-    // Turn req.body into an array of values
+    // turn req.body into an array of values
     var colValues = Object.keys(req.body)
       .filter((item) => item !== "id")
       .map(function (key) {
@@ -77,17 +65,12 @@ exports.updateVehicle = async (req, res) => {
 
     res.status(200).json(result.rows);
   } catch (error) {
-    res
-      .status(401)
-      .send(
-        "İstek atarken geçerli parametreler dışında parametreler girmediğinizden emin olunuz " +
-          error
-      );
+    res.status(401).send("İstek atarken geçerli parametreler dışında parametreler girmediğinizden emin olunuz "+ error);
   }
 };
 
 //delete vehicle with vehicle_plate column
-exports.deleteVehicle = async (req, res) => {
+exports.deleteDevice = async (req, res) => {
   try {
     const vehicle_plate = req.body.vehicle_plate;
 
@@ -110,3 +93,27 @@ exports.deleteVehicle = async (req, res) => {
   }
 };
 
+//this func for dynamically update vehicles excepst vehicle_id
+function updateDeviceByID(id, cols) {
+  // Setup static beginning of query
+  var query = ["UPDATE vehicles"];
+  query.push("SET");
+
+  // create another array storing each set command
+  // and assigning a number value for parameterized query
+  var set = [];
+  Object.keys(cols).forEach(function (key, i) {
+    if (key == "id") {
+      console.log("here " + key);
+    } else {
+      set.push(key + " = ($" + i + ")");
+    }
+  });
+  query.push(set.join(", "));
+
+  // add the WHERE statement to look up by id
+  query.push("WHERE id = " + id + " RETURNING *");
+
+  // return a complete query string
+  return query.join(" ");
+}
